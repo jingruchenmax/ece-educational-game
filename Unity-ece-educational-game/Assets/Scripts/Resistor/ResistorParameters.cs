@@ -6,38 +6,51 @@ namespace resistor
 {
     public enum multiplierValue
     {
-        x1,
-        x10,
-        x100,
-        x1k,
-        x10k,
-        x100k,
-        x1M,
-        x100m,
-        x10m
+        x1_Black,
+        x10_Brown,
+        x100_Red,
+        x1k_Orange,
+        x10k_Yellow,
+        x100k_Green,
+        x1M_Blue,
+        x10M_Violet,
+        x10_1_Gold,
+        x10_2_Silver
 
+    }
+    public enum bandValue
+    {
+        _0_Black,
+        _1_Brown,
+        _2_Red,
+        _3_Orange,
+        _4_Yellow,
+        _5_Green,
+        _6_Blue,
+        _7_Violet,
+        _8_Gray,
+        _9_White
     }
     public enum toleranceValue
     {
-        _default,
-        F,
-        G,
-        D,
-        C,
-        B,
-        J,
-        K
+        default_Black,
+        F_Brown,
+        G_Red,
+        D_Green,
+        C_Blue,
+        B_Violet,
+        J_Gold,
+        K_Silver
     }
     [Serializable]
     public class Band
     {
-        [Range(0, 9)]
-        public int value;
+        public bandValue value;
         public Color color { get { return ColorCode(); } }
         Color ColorCode()
         {
             Color tempColor = Color.black;
-            switch (value)
+            switch ((int)value)
             {
                 case 0: tempColor = Color.black; break;
                 case 1: tempColor = new Color(144 / 255.0f, 97 / 255.0f, 25 / 255.0f); break;

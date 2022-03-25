@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5a4ad8ad418e784fa8f446d359d2313, type: 3}
-  m_Name: ResistorParameters
+  m_Name: E12_680
   m_EditorClassIdentifier: 
   band_1:
-    value: 1
+    value: 6
   band_2:
-    value: 0
+    value: 8
   multiplier:
-    value: 0
+    value: 1
   tolerance:
-    value: 0
+    value: 6
