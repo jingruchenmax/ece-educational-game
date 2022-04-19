@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class LightBulbController : MonoBehaviour
 {
     [SerializeField]
     Transform componentObject;
+    LightBulbRenderer occupiedLightBulbRenderer;
+    InventoryItem inventoryItem;
     public float lightIntensity
     {
         get { return _lightIntensity; }
@@ -31,18 +34,18 @@ public class LightBulbController : MonoBehaviour
             }
         }
     }
-    private bool _lightBulbStatus;
+    public bool _lightBulbStatus;
     [SerializeField]
     private Transform lightObject;
     private Material lightMaterial;
 
-    public delegate void OnVariableChangeDelegate();
-    public event OnVariableChangeDelegate OnVariableChange;
-    public delegate void OnStatusChangeDelegate();
-    public event OnStatusChangeDelegate OnStatusChange;
+    public UnityEvent OnVariableChange;
+    public UnityEvent OnStatusChange;
     private Animator animator;
 
     LightBulbRenderer lightBulbRenderer;
+
+    public int resistorValue { get { return lightBulbRenderer.resistorValue; } }
     private void Awake()
     {
         if (componentObject != null)
@@ -50,18 +53,16 @@ public class LightBulbController : MonoBehaviour
         animator = GetComponent<Animator>();
         _lightIntensity = 0;
         lightIntensity = 0;
-        _lightBulbStatus = false;
-        lightBulbStatus = false;
-        
-
+        lightBulbStatus = _lightBulbStatus;
     }
     private void Start()
     {
-        OnVariableChange += VariableChangeHandler;
-        OnStatusChange += VariableChangeHandler;
-        OnStatusChange += StatusChangeHandler;
+        OnVariableChange.AddListener(VariableChangeHandler);
+        OnStatusChange.AddListener(VariableChangeHandler);
+        OnStatusChange.AddListener(StatusChangeHandler);
         lightMaterial = lightObject.GetComponent<SpriteRenderer>().material;
-        lightBulbRenderer.SetRendererActive(false);
+        if(!lightBulbStatus)
+            lightBulbRenderer.SetRendererActive(false);
     }
     private void VariableChangeHandler()
     {
@@ -69,7 +70,6 @@ public class LightBulbController : MonoBehaviour
             lightMaterial.SetFloat("_LightIntensity", lightIntensity);
         else
             lightMaterial.SetFloat("_LightIntensity", 0);
-
     }
 
     private void StatusChangeHandler()
@@ -77,7 +77,7 @@ public class LightBulbController : MonoBehaviour
         switch (lightBulbStatus)
         {
             case true:
-                animator.Play("LightPlugIn");
+                animator.Play("LightPlugIn");       
                 break;
             case false:
                 animator.Play("LightPlugOut");
@@ -96,18 +96,33 @@ public class LightBulbController : MonoBehaviour
     }
     public void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("collide");
-        if (other.GetComponent<LightBulbRenderer>() != null)
+        if (other.GetComponent<LightBulbRenderer>() != null && !lightBulbStatus)
         {
             other.gameObject.transform.position = componentObject.transform.position;
-            LightBulbRenderer rr = other.gameObject.GetComponent<LightBulbRenderer>();
-            rr.SetRendererActive(false);
+            occupiedLightBulbRenderer = other.gameObject.GetComponent<LightBulbRenderer>();
+            lightBulbRenderer.resistorValue = occupiedLightBulbRenderer.resistorValue;
+            occupiedLightBulbRenderer.SetRendererActive(false);
             lightBulbStatus = true;
-            if (other.GetComponent<InventoryItem>() != null)
+            inventoryItem = other.GetComponent<InventoryItem>();
+            inventoryItem.canDrop = true;
+        }
+        if (other.GetComponent<LightBulbRenderer>() != null && lightBulbStatus) // ready for replace
+        {
+            if (other.GetComponent<LightBulbRenderer>() != occupiedLightBulbRenderer)
             {
-                InventoryItem ii = other.GetComponent<InventoryItem>();
-                ii.canDrop = true;
+                other.gameObject.transform.position = componentObject.transform.position;
+                occupiedLightBulbRenderer.SetRendererActive(true);
+                inventoryItem.canDrop = false;
+                inventoryItem.OnMouseUp(); // throw item back to inventory
+                occupiedLightBulbRenderer = other.GetComponent<LightBulbRenderer>();
+                occupiedLightBulbRenderer.SetRendererActive(false);
+                lightBulbRenderer.resistorValue = occupiedLightBulbRenderer.resistorValue;
+                OnVariableChange.Invoke();
+                inventoryItem = other.GetComponent<InventoryItem>();
+                inventoryItem.canDrop = true;
+                
             }
+            
         }
     }
 
@@ -118,19 +133,15 @@ public class LightBulbController : MonoBehaviour
     }
     public void OnTriggerExit2D(Collider2D other)
     {
-        Debug.Log("collide");
-        if (other.GetComponent<LightBulbRenderer>() != null)
+        if (other.GetComponent<LightBulbRenderer>() != null && lightBulbStatus)
         {
-            other.gameObject.transform.position = componentObject.transform.position;
-            LightBulbRenderer rr = other.gameObject.GetComponent<LightBulbRenderer>();
-            rr.SetRendererActive(true);
-            lightBulbStatus = false;
-            if (other.GetComponent<InventoryItem>() != null)
+            if (other.GetComponent<LightBulbRenderer>() == occupiedLightBulbRenderer)
             {
-                InventoryItem ii = other.GetComponent<InventoryItem>();
-                ii.canDrop = false;
-            }
-       
+                occupiedLightBulbRenderer.SetRendererActive(true);
+                inventoryItem.canDrop = false;
+                lightBulbRenderer.SetRendererActive(false);
+                lightBulbStatus = false;
+            }           
         }
     }
 }

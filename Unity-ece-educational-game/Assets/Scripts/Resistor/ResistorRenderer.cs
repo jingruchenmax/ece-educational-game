@@ -8,6 +8,14 @@ namespace resistor
     {
 
         public ResistorParameters resistorAsset;
+        [HideInInspector] public int resistorValue 
+        { get 
+            {
+                if ((int)resistorAsset.multiplier.value != 8 || (int)resistorAsset.multiplier.value != 9)
+                    return ((int)resistorAsset.band_1.value * 10 + (int)resistorAsset.band_2.value * 1) * (int)Mathf.Pow(10, (int)resistorAsset.multiplier.value);
+                else return -1;
+            } 
+        }
         [Header("Resistor Bands")]
         [SerializeField]
         SpriteRenderer band_1;

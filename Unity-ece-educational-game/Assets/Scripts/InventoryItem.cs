@@ -9,19 +9,38 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryItem : MonoBehaviour
 {
-    public bool canDrop = false;
+    public bool canDrop = true;
     Vector3 originPos;
     RectTransform rectTransform;
+    RectTransform rectTextTransform;
+    Transform textBoxObject;
+    Vector3 originScale;
+    Vector3 originTextScale;
     private void Awake()
     {
+        if (textBoxObject == null)
+            textBoxObject = transform.GetChild(0);
         rectTransform = GetComponent<RectTransform>();
-        originPos = rectTransform.anchoredPosition;
+        rectTextTransform = textBoxObject.GetComponent<RectTransform>();
+        originPos = rectTransform.localPosition;
+        textBoxObject.gameObject.SetActive(false);
+        originScale = rectTransform.localScale;
+        originTextScale = rectTextTransform.localScale;
     }
     // Reference to the canvas.
 
     public void OnMouseEnter()
     {
-        canDrop = false;
+        textBoxObject.gameObject.SetActive(true);
+    }
+    public void OnMouseExit()
+    {
+        textBoxObject.gameObject.SetActive(false);
+    }
+    public void OnMouseDown()
+    {
+        rectTransform.localScale = originScale*1.2f;
+        textBoxObject.localScale = originTextScale/1.2f;
     }
     public void OnMouseDrag()
     {
@@ -30,7 +49,11 @@ public class InventoryItem : MonoBehaviour
     }
     public void OnMouseUp()
     {
-
-       
+        if (!canDrop)
+        {
+            rectTransform.localPosition = originPos;
+        }
+        rectTransform.localScale = originScale;
+        textBoxObject.localScale = originTextScale;
     }
 }

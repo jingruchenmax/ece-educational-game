@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using resistor;
+using UnityEngine.Events;
 
 public class ResistorController : MonoBehaviour
 {
@@ -9,7 +10,9 @@ public class ResistorController : MonoBehaviour
     Transform componentObject;
     ResistorRenderer resistorRenderer;
     Animator animator;
-
+    ResistorRenderer occupiedResistorRenderer;
+    InventoryItem inventoryItem;
+    public int resistorValue { get { return resistorRenderer.resistorValue; } }
     public bool resistorStatus
     {
         get { return _resistorStatus; }
@@ -22,32 +25,34 @@ public class ResistorController : MonoBehaviour
             }
         }
     }
-    private bool _resistorStatus;
-    public delegate void OnVariableChangeDelegate();
-    public event OnVariableChangeDelegate OnVariableChange;
+    public bool _resistorStatus;
+    public UnityEvent OnVariableChange;
     void Awake()
     {
         if (componentObject != null)
             resistorRenderer = componentObject.GetComponent<ResistorRenderer>();
-        _resistorStatus = false;
-        resistorStatus = false;
         animator = GetComponent<Animator>();
-        resistorRenderer.SetRendererActive(false);
+        resistorStatus = _resistorStatus;
+        if(!resistorStatus)
+            resistorRenderer.SetRendererActive(false);
     }
     public void ChangeResistorValue(ResistorParameters parameters)
     {
         resistorRenderer.resistorAsset = parameters;
+        // visualize the calculation of resistor
+        //string st = string.Format("total {0}, band 1 {1}, band 2 {2}, band multiplier {3}, calculate {4}", resistorValue, (int)resistorRenderer.resistorAsset.band_1.value, (int)resistorRenderer.resistorAsset.band_2.value, (int)resistorRenderer.resistorAsset.multiplier.value, (int)Mathf.Pow(10, (int)resistorRenderer.resistorAsset.multiplier.value));
+        //Debug.Log(st);
     }
     private void Start()
     {
-        OnVariableChange += VariableChangeHandler;
+        OnVariableChange.AddListener(VariableChangeHandler);
     }
     void VariableChangeHandler()
     {
         switch (resistorStatus)
         {
             case true:
-                animator.Play("ResistorPlugIn");
+                animator.Play("ResistorPlugIn");              
                 break;
             case false:
                 animator.Play("ResistorPlugOut");
@@ -66,17 +71,34 @@ public class ResistorController : MonoBehaviour
     }
     public void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.GetComponent<ResistorRenderer>() != null)
+        if (other.GetComponent<ResistorRenderer>() != null && resistorStatus) // caution: a new resistor is trying to replace the old one!!
         {
-            ResistorRenderer rr = other.GetComponent<ResistorRenderer>();
-            rr.SetRendererActive(false);
-            ChangeResistorValue(rr.resistorAsset);
-            if (other.GetComponent<InventoryItem>() != null)
+            if (other.GetComponent<LightBulbRenderer>() != occupiedResistorRenderer)
             {
-                Debug.Log("set");
-                InventoryItem ii = other.GetComponent<InventoryItem>();
-                ii.canDrop = true;
+                occupiedResistorRenderer.SetRendererActive(true);
+                inventoryItem.canDrop = false;
+                inventoryItem.OnMouseUp(); // throw item back to inventory
+                //replaced
+                occupiedResistorRenderer = other.GetComponent<ResistorRenderer>();
+                occupiedResistorRenderer.SetRendererActive(false);
+                ChangeResistorValue(occupiedResistorRenderer.resistorAsset);
+                resistorRenderer.OnValueChange();
+                OnVariableChange.Invoke();
+                inventoryItem = occupiedResistorRenderer.GetComponent<InventoryItem>();
+                inventoryItem.canDrop = true; //stay here
+                
+                                              // resistorStatus = true; omitted
             }
+        }
+
+        if (other.GetComponent<ResistorRenderer>() != null && !resistorStatus)
+        {
+            occupiedResistorRenderer = other.GetComponent<ResistorRenderer>();
+            ChangeResistorValue(occupiedResistorRenderer.resistorAsset);
+            resistorRenderer.OnValueChange();
+            occupiedResistorRenderer.SetRendererActive(false);
+            inventoryItem = occupiedResistorRenderer.GetComponent<InventoryItem>();
+            inventoryItem.canDrop = true;
             resistorStatus = true;
         }
     }
@@ -88,24 +110,16 @@ public class ResistorController : MonoBehaviour
     }
     public void OnTriggerExit2D(Collider2D other)
     {
-        if (other.GetComponent<ResistorRenderer>() != null)
-        {
-            ResistorRenderer rr = other.GetComponent<ResistorRenderer>();
-            rr.SetRendererActive(true);
-            resistorRenderer.SetRendererActive(false);
-        }
-        resistorStatus = false;
 
-        if (other.GetComponent<ResistorRenderer>() != null)
+        if (other.GetComponent<ResistorRenderer>() != null && resistorStatus)
         {
-            ResistorRenderer rr = other.GetComponent<ResistorRenderer>();
-            rr.SetRendererActive(true);
-            if (other.GetComponent<InventoryItem>() != null)
+            if (other.GetComponent<ResistorRenderer>() == occupiedResistorRenderer)
             {
-                InventoryItem ii = other.GetComponent<InventoryItem>();
-                ii.canDrop = false;
-            }
-            resistorStatus = false;
+                occupiedResistorRenderer.SetRendererActive(true);
+                inventoryItem.canDrop = false;
+                resistorRenderer.SetRendererActive(false);
+                resistorStatus = false;
+            }      
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class MeterController : MonoBehaviour
 {
@@ -20,19 +21,17 @@ public class MeterController : MonoBehaviour
     public float maxValue;
     [SerializeField]
     private Transform pointer;
-    
     public float meterPercentage 
     { 
         get { return Mathf.Clamp(meterValue/maxValue,0,1); }
     }
 
 
-    public delegate void OnVariableChangeDelegate();
-    public event OnVariableChangeDelegate OnVariableChange;
+    public UnityEvent OnVariableChange;
     // Start is called before the first frame update
     void Start()
     {
-        OnVariableChange += VariableChangeHandler;
+        OnVariableChange.AddListener(VariableChangeHandler);
     }
 
     private void VariableChangeHandler()
