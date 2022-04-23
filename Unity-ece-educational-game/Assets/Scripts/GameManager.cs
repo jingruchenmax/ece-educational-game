@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     Text levelText;
     [SerializeField]
-    Transform levelClearScreen;
+    Canvas levelClearScreen;
     public UnityEvent OnLevelClear;
 
     private void Awake()
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
 
     private void SetLevel()
     {
-        levelClearScreen.gameObject.SetActive(false);
+        levelClearScreen.enabled = false;
 #if UNITY_EDITOR
         if (currentLevel - 1 < levelScenes.Length)
         {
@@ -58,7 +58,6 @@ public class GameManager : MonoBehaviour
     }
     private void SetLevel(int level)
     {
-        levelClearScreen.gameObject.SetActive(false);
         currentLevel = level;
         SetLevel();
     }
@@ -66,7 +65,7 @@ public class GameManager : MonoBehaviour
     private async void SetLevelClearScreen()
     {
         await Task.Delay(1000);
-        levelClearScreen.gameObject.SetActive(true);
+        levelClearScreen.enabled =true;
     }
 
 }
