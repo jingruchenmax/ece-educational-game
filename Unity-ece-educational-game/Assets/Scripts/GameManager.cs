@@ -62,10 +62,19 @@ public class GameManager : MonoBehaviour
         SetLevel();
     }
 
+
+#if !PLATFORM_WEBGL
     private async void SetLevelClearScreen()
     {
         await Task.Delay(1000);
         levelClearScreen.enabled =true;
     }
+# endif
 
+#if PLATFORM_WEBGL
+    private void SetLevelClearScreen()
+    {
+        levelClearScreen.enabled =true;
+    }
+# endif
 }
