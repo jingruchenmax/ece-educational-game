@@ -141,6 +141,7 @@ public class LightBulbController : MonoBehaviour
                 inventoryItem.canDrop = false;
                 lightBulbRenderer.SetRendererActive(false);
                 lightBulbStatus = false;
+                lightBulbRenderer.resistorValue = 0;
             }           
         }
     }

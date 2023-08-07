@@ -54,7 +54,7 @@ public class Level3Controller : MonoBehaviour
     void OnCheckLevelStatusHandler()
     {
         //Check and update level variables
-        if (lightBulb1Controller.lightBulbStatus == false || lightBulb2Controller.lightBulbStatus == false || switchController.switchStatus == false )
+        if ((lightBulb1Controller.lightBulbStatus == false && lightBulb2Controller.lightBulbStatus == false) || switchController.switchStatus == false )
         {
             lightBulb1Controller.lightIntensity = 0;
             meter1Controller.meterValue = 0;
@@ -62,23 +62,50 @@ public class Level3Controller : MonoBehaviour
             meter2Controller.meterValue = 0;
         }
 
-        else if (lightBulb1Controller.lightBulbStatus == true && lightBulb2Controller.lightBulbStatus == true && switchController.switchStatus == true && !isLevelClear)
+        else if (!isLevelClear)
         {
             
             if (lightBulb1Controller.resistorValue == 10)
             {
                 lightBulb1Controller.lightIntensity = 0.2f;
                 meter1Controller.meterValue = 20;
+        
+            }
+
+
+            if (lightBulb1Controller.lightBulbStatus == false)
+            {
+                lightBulb1Controller.lightIntensity = 0;
+                meter1Controller.meterValue = 0;
+            }
+
+            if (lightBulb2Controller.resistorValue == 40)
+            {
                 lightBulb2Controller.lightIntensity = 0.8f;
-                meter2Controller.meterValue = 80;            
+                meter2Controller.meterValue = 80;
             }
 
             if (lightBulb1Controller.resistorValue == 40)
             {
                 lightBulb1Controller.lightIntensity = 0.8f;
                 meter1Controller.meterValue = 80;
+
+            }
+
+            if (lightBulb2Controller.resistorValue == 10)
+            {
                 lightBulb2Controller.lightIntensity = 0.2f;
                 meter2Controller.meterValue = 20;
+            }
+
+            if (lightBulb2Controller.lightBulbStatus == false)
+            {
+                lightBulb2Controller.lightIntensity = 0;
+                meter2Controller.meterValue = 0;
+            }
+
+            if (lightBulb2Controller.resistorValue == 10 && lightBulb1Controller.resistorValue == 40)
+            {
                 isLevelClear = true;
             }
         }
